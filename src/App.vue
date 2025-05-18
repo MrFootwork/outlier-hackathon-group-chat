@@ -16,6 +16,7 @@ function toggleTheme() {
       app
       permanent
       :width="80"
+      color="highlight-dark"
     >
       <v-list class="d-flex flex-column align-center">
         <v-list-item>
