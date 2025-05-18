@@ -1,6 +1,12 @@
 <script setup>
-import { useTheme } from 'vuetify'
-const theme = useTheme()
+import { ref } from 'vue'
+
+const message = ref('')
+
+function sendMessage() {
+  // Logic to send a message
+  console.log('Message sent!', message.value)
+}
 </script>
 
 <template>
@@ -10,10 +16,7 @@ const theme = useTheme()
       <div class="room-members">members</div>
     </v-container>
 
-    <v-container
-      class="display"
-      :style="{ backgroundColor: theme.current.value.colors.primary }"
-    >
+    <v-container class="display">
       <v-container class="messages d-flex flex-column">
         <v-card>Message</v-card>
         <v-card>Message</v-card>
@@ -56,8 +59,31 @@ const theme = useTheme()
         <v-card>Message</v-card>
       </v-container>
 
-      <v-container class="message-input">
-        <v-text-field class="input-field">Input</v-text-field>
+      <v-container
+        class="message-input"
+        width="90%"
+      >
+        <v-text-field
+          v-model="message"
+          class="custom-input"
+          variant="solo"
+          hide-details
+          placeholder="Start typing..."
+        >
+          <template #append-inner>
+            <v-btn
+              variant="plain"
+              class="send-button"
+              @click="sendMessage"
+              icon
+            >
+              <v-icon
+                class="send-icon-bg"
+                icon="mdi-send"
+              />
+            </v-btn>
+          </template>
+        </v-text-field>
       </v-container>
     </v-container>
   </v-container>
@@ -104,8 +130,18 @@ const theme = useTheme()
       display: flex;
       justify-content: center;
 
-      & .input-field {
-        width: 80%;
+      & .custom-input:deep(.v-field) {
+        border-radius: 12px;
+        box-shadow: none;
+        border: none;
+      }
+
+      & .send-button {
+        height: 3.5rem;
+        width: 3.5rem;
+        translate: 1rem;
+        background-color: #1976d2;
+        border-radius: 12px;
       }
     }
   }
