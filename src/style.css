@@ -2,3 +2,13 @@ body,
 .v-application {
   font-family: 'Questrial', sans-serif;
 }
+
+html,
+body,
+#app,
+.v-application {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-y: hidden !important;
+}

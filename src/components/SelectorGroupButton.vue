@@ -22,7 +22,7 @@ const props = defineProps({
       color="primary"
       :offset-x="4"
       :offset-y="4"
-      class="badge-online"
+      class="online-badge"
     >
       <v-avatar
         image="https://i.pravatar.cc/300"
@@ -38,7 +38,7 @@ const props = defineProps({
 </template>
 
 <style scoped>
-.badge-online ::v-deep .v-badge__badge {
+.v-badge.online-badge:deep(.v-badge__badge) {
   width: 12px;
   height: 12px;
   border-radius: 50%;
