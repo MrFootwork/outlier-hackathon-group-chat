@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import CardMessage from './CardMessage.vue'
 
 const message = ref('')
 
@@ -30,6 +31,11 @@ const members = [
     avatar: 'https://i.pravatar.cc/300',
   },
 ]
+
+// Generate an array of random indices for 25 messages
+const randomSenderIndices = computed(() =>
+  Array.from({ length: 25 }, () => Math.floor(Math.random() * members.length))
+)
 </script>
 
 <template>
@@ -70,45 +76,17 @@ const members = [
 
     <v-container class="display">
       <v-container class="messages d-flex flex-column">
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
-        <v-card>Message</v-card>
+        <CardMessage
+          v-for="n in 25"
+          :key="n"
+          :message="{
+            text: `Message ${n}`,
+            senderID: randomSenderIndices[n - 1],
+            time: '10:30 AM',
+          }"
+          :sender="members[randomSenderIndices[n - 1]]"
+          class="mb-2"
+        />
       </v-container>
 
       <v-container
@@ -165,10 +143,28 @@ const members = [
     min-height: 0;
     padding: 0;
 
+    overflow: hidden;
+    border-top-left-radius: 1rem;
+
     display: flex;
     flex-direction: column;
 
-    outline: 1px solid #e0e0e0;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background-image: url('../assets/chat-background.png');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      filter: blur(4px);
+      opacity: 0.5;
+      pointer-events: none;
+      border-top-left-radius: 1rem;
+    }
 
     & .messages {
       flex: 1 1 auto;
@@ -179,7 +175,8 @@ const members = [
       gap: 8px;
 
       & > * {
-        min-height: 2rem;
+        position: relative;
+        z-index: 1;
       }
     }
 
@@ -197,7 +194,7 @@ const members = [
       & .send-button {
         height: 3.5rem;
         width: 3.5rem;
-        translate: 1rem;
+        translate: 0.75rem;
         background-color: #1976d2;
         border-radius: 12px;
       }
