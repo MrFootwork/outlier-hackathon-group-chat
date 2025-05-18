@@ -32,7 +32,7 @@ const props = defineProps({
 
     <v-container class="pa-2">
       <h4>{{ props.room.name }}</h4>
-      <p class="text-grey">{{ props.room.lastMessage }}</p>
+      <p class="text-grey text-caption">{{ props.room.lastMessage }}</p>
     </v-container>
   </v-container>
 </template>

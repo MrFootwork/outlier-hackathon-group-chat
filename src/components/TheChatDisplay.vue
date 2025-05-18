@@ -7,13 +7,65 @@ function sendMessage() {
   // Logic to send a message
   console.log('Message sent!', message.value)
 }
+
+const members = [
+  {
+    id: 1,
+    name: 'John Doe',
+    avatar: 'https://i.pravatar.cc/300',
+  },
+  {
+    id: 2,
+    name: 'Jane Smith',
+    avatar: 'https://i.pravatar.cc/300',
+  },
+  {
+    id: 3,
+    name: 'Alice Johnson',
+    avatar: 'https://i.pravatar.cc/300',
+  },
+  {
+    id: 4,
+    name: 'Bob Brown',
+    avatar: 'https://i.pravatar.cc/300',
+  },
+]
 </script>
 
 <template>
   <v-container class="chat-area">
     <v-container class="header">
-      <div class="room-info">info</div>
-      <div class="room-members">members</div>
+      <v-container class="room-info pa-0 d-flex flex-row align-center">
+        <v-avatar
+          image="https://i.pravatar.cc/300"
+          size="48"
+        />
+        <v-container>
+          <h4>Room Name</h4>
+          <p class="text-grey text-caption">6 members</p>
+        </v-container>
+      </v-container>
+
+      <v-container class="room-members d-flex flex-row align-center justify-end">
+        <v-avatar
+          v-for="member in members.slice(0, 3)"
+          :key="member.id"
+          class="member-avatar"
+          :image="member.avatar"
+          size="24"
+        />
+        <!-- Show "+N" avatar if there are more than 3 members -->
+        <v-avatar
+          v-if="members.length > 3"
+          class="member-avatar"
+          size="24"
+          color="grey-lighten-2"
+        >
+          <span class="text-caption text-grey-darken-3 font-weight-bold">
+            +{{ members.length - 3 }}
+          </span>
+        </v-avatar>
+      </v-container>
     </v-container>
 
     <v-container class="display">
@@ -102,6 +154,10 @@ function sendMessage() {
 
     display: flex;
     justify-content: space-between;
+
+    & .member-avatar {
+      margin-left: -0.25rem;
+    }
   }
 
   & .display {
@@ -111,6 +167,8 @@ function sendMessage() {
 
     display: flex;
     flex-direction: column;
+
+    outline: 1px solid #e0e0e0;
 
     & .messages {
       flex: 1 1 auto;
