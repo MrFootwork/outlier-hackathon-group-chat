@@ -4,11 +4,11 @@ import { useTheme } from 'vuetify'
 
 const theme = useTheme()
 
-const { message, sender } = defineProps({
-  message: {
-    text: String,
-    sender: String,
-    time: String,
+const { messages, sender } = defineProps({
+  messages: {
+    pre: { text: String, senderID: Number, time: String },
+    this: { text: String, senderID: Number, time: String },
+    next: { text: String, senderID: Number, time: String },
   },
   sender: {
     id: Number,
@@ -26,9 +26,10 @@ const badgeBorderColor = computed(() => (theme.global.current.value.dark ? '#222
       :image="sender.avatar"
       size="48"
     />
+
     <v-container class="pt-0">
       <h5>{{ sender.name }}</h5>
-      <p class="card-message pa-3">{{ message.text }}</p>
+      <p class="card-message pa-3">{{ messages.this.text }}</p>
     </v-container>
   </v-container>
 </template>
