@@ -12,6 +12,9 @@ const sharedColors = {
 export default createVuetify({
   components,
   directives,
+  typography: {
+    defaultFontFamily: 'Questrial, sans-serif',
+  },
   icons: {
     defaultSet: 'mdi',
     aliases,

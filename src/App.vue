@@ -15,17 +15,21 @@ const theme = useTheme()
     <TheNavigationDrawer />
 
     <v-main class="d-flex flex-row justify-space-between">
-      <TheGroupChatSelector class="width-40" />
-      <TheChatDisplay class="width-60" />
+      <TheGroupChatSelector class="group-selector" />
+      <TheChatDisplay class="chat-display" />
     </v-main>
   </v-app>
 </template>
 
 <style scoped>
-.width-40 {
-  width: 40%;
+.group-selector {
+  max-width: 350px;
+  width: 100%;
+  flex-shrink: 0;
 }
-.width-60 {
-  width: 60%;
+
+.chat-display {
+  flex: 1;
+  min-width: 0;
 }
 </style>
