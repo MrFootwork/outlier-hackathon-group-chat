@@ -4,7 +4,7 @@ import { useTheme } from 'vuetify'
 
 const theme = useTheme()
 
-const { messages, sender } = defineProps({
+const { messages, sender, isMine } = defineProps({
   messages: {
     pre: { text: String, senderID: Number, time: String },
     this: { text: String, senderID: Number, time: String },
@@ -15,23 +15,33 @@ const { messages, sender } = defineProps({
     name: String,
     avatar: String,
   },
+  isMine: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const badgeBorderColor = computed(() => (theme.global.current.value.dark ? '#222' : '#fff'))
+const alignment = computed(() => (isMine ? 'flex-end' : 'flex-start'))
 </script>
 
 <template>
-  <v-container class="message-item pa-0 d-flex flex-row align-start">
-    <v-avatar
-      :image="sender.avatar"
-      size="48"
-    />
+  <div :style="{ alignSelf: alignment }">
+    <v-container
+      class="message-item w-auto pa-0 d-flex flex-row"
+      :style="{ alignSelf: alignment }"
+    >
+      <v-avatar
+        :image="sender.avatar"
+        size="48"
+      />
 
-    <v-container class="pt-0">
-      <h5>{{ sender.name }}</h5>
-      <p class="card-message pa-3">{{ messages.this.text }}</p>
+      <v-container class="pt-0">
+        <h5>{{ sender.name }}</h5>
+        <p class="card-message pa-3">{{ messages.this.text }}</p>
+      </v-container>
     </v-container>
-  </v-container>
+  </div>
 </template>
 
 <style scoped>

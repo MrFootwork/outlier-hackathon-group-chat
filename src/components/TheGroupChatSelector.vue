@@ -1,23 +1,23 @@
 <script setup>
 import RoomButton from './SelectorGroupButton.vue'
 
-const items = [
+const rooms = [
   {
     id: 1,
-    name: 'Group Chat 1',
-    lastMessage: 'Hello, how are you?',
+    name: 'Project Alpha Team',
+    lastMessage: 'The latest draft is ready for review.',
     time: '10:30 AM',
   },
   {
     id: 2,
-    name: 'Group Chat 2',
-    lastMessage: 'See you later!',
+    name: 'Family Group',
+    lastMessage: 'Dinner at 7 tonight?',
     time: '11:00 AM',
   },
   {
     id: 3,
-    name: 'Group Chat 3',
-    lastMessage: "Let's meet tomorrow.",
+    name: 'Book Club',
+    lastMessage: "Don't forget to bring your notes!",
     time: '11:30 AM',
   },
 ]
@@ -35,15 +35,15 @@ const items = [
     />
 
     <RoomButton
-      v-for="item in items"
-      :key="item.id"
-      :room="item"
+      v-for="room in rooms"
+      :key="room.id"
+      :room="room"
     />
   </v-container>
 </template>
 
 <style scoped>
-.custom-input ::v-deep .v-field {
+.custom-input:deep(.v-field) {
   border-radius: 16px;
   box-shadow: none;
 }

@@ -9,6 +9,8 @@ function sendMessage() {
   console.log('Message sent!', message.value)
 }
 
+const myUserId = 4
+
 const members = [
   {
     id: 1,
@@ -223,7 +225,7 @@ const messages = [
     </v-container>
 
     <v-container class="display">
-      <v-container class="messages d-flex flex-column">
+      <v-container class="messages d-flex flex-column align-stretch">
         <CardMessage
           v-for="(message, i) in messages"
           :key="message.id"
@@ -233,6 +235,7 @@ const messages = [
             next: messages[i + 1],
           }"
           :sender="members.find((member) => member.id === message.senderID)"
+          :isMine="message.senderID === myUserId"
           class="mb-2"
         />
       </v-container>
@@ -318,8 +321,9 @@ const messages = [
       flex: 1 1 auto;
       min-height: 0;
       overflow-y: auto;
-      display: flex;
+      /* display: flex;
       flex-direction: column;
+      align-items: stretch; */
       gap: 8px;
 
       & > * {
