@@ -40,9 +40,20 @@ const roomMembers = computed(() => {
     })
 })
 
+const roomMessages = computed(() => {
+  return messages.value.filter((message) => message.roomID === selectedRoomID.value)
+})
+
 const isTyping = ref(false)
 const randomIndex = ref(null)
 const responder = ref(null)
+
+const buttonColor = computed(() => {
+  return theme.global.current.value.dark ? '#fff' : '#222'
+})
+const iconColor = computed(() => {
+  return theme.global.current.value.dark ? '#222' : '#fff'
+})
 
 /***************
  * SCROLLING
@@ -70,7 +81,7 @@ function scrollToBottom() {
 
 // Scroll to bottom when new messages are added
 watch(
-  () => messages.value.length,
+  () => roomMessages.value.length,
   () => {
     scrollToBottom()
   }
@@ -127,7 +138,7 @@ async function sendMessage() {
     You are ${responder.value.name}.
     Please respond to the messages in the context of this group chat.`
 
-    const contextMessages = messages.value
+    const contextMessages = roomMessages.value
       .filter((message) => message.roomID === selectedRoomID.value)
       .map((message) => {
         return {
@@ -203,8 +214,8 @@ const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#f
           size="48"
         />
         <v-container>
-          <h4>Room Name</h4>
-          <p class="text-grey text-caption">6 members</p>
+          <h4>{{ rooms.find((r) => r.id === selectedRoomID).name }}</h4>
+          <p class="text-grey text-caption">{{ roomMembers.length }} members</p>
         </v-container>
       </v-container>
 
@@ -236,7 +247,7 @@ const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#f
         class="messages d-flex flex-column align-stretch"
       >
         <CardMessage
-          v-for="(message, i) in messages"
+          v-for="(message, i) in roomMessages"
           :key="message.id"
           :messages="{
             pre: messages[i - 1],
@@ -266,10 +277,12 @@ const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#f
               class="send-button"
               @click="sendMessage"
               icon
+              :style="{ backgroundColor: buttonColor }"
             >
               <v-icon
                 class="send-icon-bg"
                 icon="mdi-send"
+                :color="iconColor"
               />
             </v-btn>
           </template>
@@ -278,7 +291,7 @@ const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#f
         <!-- Scroll Down Button -->
         <v-btn
           v-if="scrolledUp"
-          class="scroll-to-bottom"
+          class="scroll-to-bottom rounded"
           icon="mdi-arrow-down"
           color="primary"
           @click="scrollToBottom"
@@ -407,7 +420,6 @@ const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#f
         height: 3.5rem;
         width: 3.5rem;
         translate: 0.75rem;
-        background-color: #1976d2;
         border-radius: 12px;
       }
     }

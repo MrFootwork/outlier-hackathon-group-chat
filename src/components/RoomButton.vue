@@ -1,12 +1,13 @@
 <script setup>
 import { computed } from 'vue'
 import { useTheme } from 'vuetify'
+import { useRoomsStore } from '../stores/rooms'
 
 const theme = useTheme()
 
+const roomsStore = useRoomsStore()
+
 const badgeBorderColor = computed(() => (theme.global.current.value.dark ? '#222' : '#fff'))
-const background2 = computed(() => theme.global.current.value['background-2'])
-console.log(`🚀 ~ background2:`, background2.value)
 
 const props = defineProps({
   room: {
@@ -14,12 +15,19 @@ const props = defineProps({
     required: true,
   },
 })
+
+function selectRoom() {
+  // Logic to select the room
+  console.log(`Selected room: ${props.room.id}`)
+  roomsStore.selectRoom(props.room.id)
+}
 </script>
 
 <template>
   <v-btn
     class="group-btn d-flex flex-row align-center justify-start px-0 py-2 mb-2 h-auto"
     variant="plain"
+    @click="selectRoom"
   >
     <v-badge
       dot

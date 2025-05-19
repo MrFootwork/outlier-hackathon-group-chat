@@ -22,6 +22,16 @@ const defaultUsers = [
     name: 'Bob Brown',
     avatar: 'https://i.pravatar.cc/150?img=54',
   },
+  {
+    id: 5,
+    name: 'Mommy Doe',
+    avatar: 'https://i.pravatar.cc/150?img=22',
+  },
+  {
+    id: 6,
+    name: 'Bro Doe',
+    avatar: 'https://i.pravatar.cc/150?img=51',
+  },
 ]
 
 export const useUsersStore = defineStore('users', () => {

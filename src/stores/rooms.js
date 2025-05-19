@@ -14,14 +14,7 @@ const defaultRooms = [
     name: 'Family Group',
     lastMessage: 'Dinner at 7 tonight?',
     time: '11:00 AM',
-    members: [1, 2, 3],
-  },
-  {
-    id: 3,
-    name: 'Book Club',
-    lastMessage: "Don't forget to bring your notes!",
-    time: '11:30 AM',
-    members: [2, 3, 4],
+    members: [4, 5, 6],
   },
 ]
 
@@ -29,8 +22,13 @@ export const useRoomsStore = defineStore('rooms', () => {
   const rooms = ref(defaultRooms)
   const selectedRoomID = ref(1)
 
+  function selectRoom(roomID) {
+    selectedRoomID.value = roomID
+  }
+
   return {
     rooms,
     selectedRoomID,
+    selectRoom,
   }
 })

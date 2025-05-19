@@ -32,12 +32,13 @@ const alignment = computed(() => (isMine ? 'flex-end' : 'flex-start'))
       :style="{ alignSelf: alignment }"
     >
       <v-avatar
+        v-if="sender && sender.avatar"
         :image="sender.avatar"
         size="48"
       />
 
       <v-container class="pt-0">
-        <h5>{{ sender.name }}</h5>
+        <h5 v-if="sender && sender.name">{{ sender.name }}</h5>
         <p class="card-message pa-3">{{ messages.this.text }}</p>
       </v-container>
     </v-container>
