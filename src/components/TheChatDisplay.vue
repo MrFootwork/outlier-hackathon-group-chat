@@ -237,13 +237,23 @@ async function sendMessage() {
       </v-container>
 
       <v-container class="room-members d-flex flex-row align-center justify-end">
-        <v-avatar
+        <v-tooltip
           v-for="member in roomMembers.slice(0, 3)"
-          :key="member.id"
-          class="member-avatar"
-          :image="member.avatar"
-          size="24"
-        />
+          :text="member.name"
+          location="bottom"
+          offset="20"
+        >
+          <template v-slot:activator="{ props }">
+            <v-avatar
+              v-bind="props"
+              :key="member.id"
+              class="member-avatar"
+              :image="member.avatar"
+              size="24"
+            />
+          </template>
+        </v-tooltip>
+
         <!-- Show "+N" avatar if there are more than 3 members -->
         <v-avatar
           v-if="roomMembers.length > 3"
@@ -388,6 +398,14 @@ async function sendMessage() {
 
     & .member-avatar {
       margin-left: -0.25rem;
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        cursor: pointer;
+        transform: scale(1.7);
+        margin: 0 0.2rem;
+        transition: all 0.2s ease-in-out;
+      }
     }
   }
 
