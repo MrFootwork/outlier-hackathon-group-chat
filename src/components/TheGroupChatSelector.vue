@@ -1,26 +1,11 @@
 <script setup>
-import RoomButton from './SelectorGroupButton.vue'
+import { storeToRefs } from 'pinia'
+import { useRoomsStore } from '../stores/rooms'
 
-const rooms = [
-  {
-    id: 1,
-    name: 'Project Alpha Team',
-    lastMessage: 'The latest draft is ready for review.',
-    time: '10:30 AM',
-  },
-  {
-    id: 2,
-    name: 'Family Group',
-    lastMessage: 'Dinner at 7 tonight?',
-    time: '11:00 AM',
-  },
-  {
-    id: 3,
-    name: 'Book Club',
-    lastMessage: "Don't forget to bring your notes!",
-    time: '11:30 AM',
-  },
-]
+import RoomButton from './RoomButton.vue'
+
+const roomsStore = useRoomsStore()
+const { rooms } = storeToRefs(roomsStore)
 </script>
 
 <template>

@@ -1,0 +1,88 @@
+<script setup>
+import { computed } from 'vue'
+import { useTheme } from 'vuetify'
+
+const theme = useTheme()
+
+const badgeBorderColor = computed(() => (theme.global.current.value.dark ? '#222' : '#fff'))
+const background2 = computed(() => theme.global.current.value['background-2'])
+console.log(`🚀 ~ background2:`, background2.value)
+
+const props = defineProps({
+  room: {
+    type: Object,
+    required: true,
+  },
+})
+</script>
+
+<template>
+  <v-btn
+    class="group-btn d-flex flex-row align-center justify-start px-0 py-2 mb-2 h-auto"
+    variant="plain"
+  >
+    <v-badge
+      dot
+      location="bottom end"
+      color="primary"
+      :offset-x="4"
+      :offset-y="4"
+      class="online-badge pl-2"
+    >
+      <v-avatar
+        image="https://i.pravatar.cc/300"
+        size="48"
+      />
+    </v-badge>
+
+    <v-container class="group-btn__content pa-2 d-flex flex-column align-start">
+      <h4 class="group-btn__name">{{ props.room.name }}</h4>
+      <p class="group-btn__last-message text-grey text-caption">{{ props.room.lastMessage }}</p>
+    </v-container>
+  </v-btn>
+</template>
+
+<style scoped>
+.group-btn.v-btn.v-btn--variant-plain:not(.v-btn--active):not(.v-btn--disabled):not(:hover):not(
+    :focus
+  ) {
+  opacity: 1 !important;
+}
+
+.group-btn {
+  min-width: 0;
+  width: 100%;
+  height: 4rem;
+  overflow: hidden;
+
+  &:hover {
+    background-color: var(--background-2);
+  }
+
+  &:active,
+  &:focus {
+    background-color: var(--background-3);
+  }
+}
+
+.group-btn__content {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.group-btn__name,
+.group-btn__last-message {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+.v-badge.online-badge:deep(.v-badge__badge) {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid v-bind(badgeBorderColor);
+}
+</style>

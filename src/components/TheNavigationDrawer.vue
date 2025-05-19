@@ -7,6 +7,10 @@ const theme = useTheme()
 
 function toggleTheme() {
   theme.global.name.value = theme.global.name.value === 'light' ? 'dark' : 'light'
+  window.document.documentElement.setAttribute(
+    'data-theme',
+    theme.global.name.value === 'light' ? 'light' : 'dark'
+  )
 }
 </script>
 

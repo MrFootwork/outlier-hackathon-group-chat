@@ -1,6 +1,20 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import CardMessage from './CardMessage.vue'
+
+import { useRoomsStore } from '../stores/rooms'
+import { useUsersStore } from '../stores/users'
+import { useMessagesStore } from '../stores/messages'
+
+const roomsStore = useRoomsStore()
+const { rooms, selectedRoomID } = storeToRefs(roomsStore)
+
+const messagesStore = useMessagesStore()
+const { messages } = storeToRefs(messagesStore)
+
+const usersStore = useUsersStore()
+const { users } = storeToRefs(usersStore)
 
 const message = ref('')
 
@@ -11,181 +25,13 @@ function sendMessage() {
 
 const myUserId = 4
 
-const members = [
-  {
-    id: 1,
-    name: 'John Doe',
-    avatar: 'https://i.pravatar.cc/150?img=64',
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    avatar: 'https://i.pravatar.cc/150?img=32',
-  },
-  {
-    id: 3,
-    name: 'Alice Johnson',
-    avatar: 'https://i.pravatar.cc/150?img=23',
-  },
-  {
-    id: 4,
-    name: 'Bob Brown',
-    avatar: 'https://i.pravatar.cc/150?img=54',
-  },
-]
-
-const messages = [
-  {
-    id: 1,
-    text: 'Hello, how are you?',
-    senderID: 1,
-    time: '10:30 AM',
-  },
-  {
-    id: 2,
-    text: 'I am good, thanks! How about you?',
-    senderID: 2,
-    time: '10:31 AM',
-  },
-  {
-    id: 3,
-    text: "Let's meet tomorrow.",
-    senderID: 3,
-    time: '10:32 AM',
-  },
-  {
-    id: 4,
-    text: 'Sure, sounds good!',
-    senderID: 4,
-    time: '10:33 AM',
-  },
-  {
-    id: 5,
-    text: 'See you later!',
-    senderID: 1,
-    time: '10:34 AM',
-  },
-  {
-    id: 6,
-    text: 'Goodbye!',
-    senderID: 2,
-    time: '10:35 AM',
-  },
-  {
-    id: 7,
-    text: 'Take care!',
-    senderID: 3,
-    time: '10:36 AM',
-  },
-  {
-    id: 8,
-    text: 'See you soon!',
-    senderID: 4,
-    time: '10:37 AM',
-  },
-  {
-    id: 9,
-    text: 'Have a great day!',
-    senderID: 1,
-    time: '10:38 AM',
-  },
-  {
-    id: 10,
-    text: 'You too!',
-    senderID: 2,
-    time: '10:39 AM',
-  },
-  {
-    id: 11,
-    text: 'Thanks!',
-    senderID: 3,
-    time: '10:40 AM',
-  },
-  {
-    id: 12,
-    text: 'No problem!',
-    senderID: 4,
-    time: '10:41 AM',
-  },
-  {
-    id: 13,
-    text: 'What are you working on?',
-    senderID: 1,
-    time: '10:42 AM',
-  },
-  {
-    id: 14,
-    text: 'Just some code for a project.',
-    senderID: 2,
-    time: '10:43 AM',
-  },
-  {
-    id: 15,
-    text: 'Sounds interesting!',
-    senderID: 3,
-    time: '10:44 AM',
-  },
-  {
-    id: 16,
-    text: 'Yeah, it is!',
-    senderID: 4,
-    time: '10:45 AM',
-  },
-  {
-    id: 17,
-    text: 'Let me know if you need help.',
-    senderID: 1,
-    time: '10:46 AM',
-  },
-  {
-    id: 18,
-    text: 'Thank you!',
-    senderID: 2,
-    time: '10:47 AM',
-  },
-  {
-    id: 19,
-    text: 'Will do!',
-    senderID: 3,
-    time: '10:48 AM',
-  },
-  {
-    id: 20,
-    text: 'Great!',
-    senderID: 4,
-    time: '10:49 AM',
-  },
-  {
-    id: 21,
-    text: 'How was your weekend?',
-    senderID: 1,
-    time: '10:50 AM',
-  },
-  {
-    id: 22,
-    text: 'It was good, thanks!',
-    senderID: 2,
-    time: '10:51 AM',
-  },
-  {
-    id: 23,
-    text: 'Did you do anything fun?',
-    senderID: 3,
-    time: '10:52 AM',
-  },
-  {
-    id: 24,
-    text: 'Went hiking!',
-    senderID: 4,
-    time: '10:53 AM',
-  },
-  {
-    id: 25,
-    text: 'Nice! I love hiking.',
-    senderID: 1,
-    time: '10:54 AM',
-  },
-]
+const members = computed(() => {
+  return rooms.value
+    .find((room) => room.id === selectedRoomID.value)
+    ?.members.map((memberID) => {
+      return users.value.find((user) => user.id === memberID)
+    })
+})
 </script>
 
 <template>

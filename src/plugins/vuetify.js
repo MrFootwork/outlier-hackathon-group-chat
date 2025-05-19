@@ -26,12 +26,14 @@ export default createVuetify({
       light: {
         colors: {
           background: '#f5f5f5',
+          'background-2': '#b9b9b9',
           ...sharedColors,
         },
       },
       dark: {
         colors: {
           background: '#181818',
+          'background-2': '#383838',
           ...sharedColors,
         },
       },
