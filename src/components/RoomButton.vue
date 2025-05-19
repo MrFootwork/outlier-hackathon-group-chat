@@ -38,7 +38,7 @@ function selectRoom() {
       class="online-badge pl-2"
     >
       <v-avatar
-        image="https://i.pravatar.cc/300"
+        :image="room.avatar"
         size="48"
       />
     </v-badge>

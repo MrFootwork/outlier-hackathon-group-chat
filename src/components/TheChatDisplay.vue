@@ -128,6 +128,8 @@ async function sendMessage() {
       time: new Date().toISOString(),
     })
 
+    inputMessage.value = ''
+
     // Build context
     const otherMembers = roomMembers.value.filter((member) => member && member.id !== myUserId)
     randomIndex.value = Math.floor(Math.random() * otherMembers.length)
@@ -186,7 +188,6 @@ async function sendMessage() {
       })
 
       // Cleanup
-      inputMessage.value = ''
       randomIndex.value = null
       responder.value = null
       isTyping.value = false
@@ -195,7 +196,6 @@ async function sendMessage() {
     console.error(error)
 
     // Cleanup
-    inputMessage.value = ''
     randomIndex.value = null
     responder.value = null
     isTyping.value = false
@@ -210,7 +210,7 @@ const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#f
     <v-container class="header">
       <v-container class="room-info pa-0 d-flex flex-row align-center">
         <v-avatar
-          image="https://i.pravatar.cc/300"
+          :image="rooms.find((r) => r.id === selectedRoomID).avatar"
           size="48"
         />
         <v-container>
@@ -293,9 +293,8 @@ const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#f
           v-if="scrolledUp"
           class="scroll-to-bottom rounded"
           icon="mdi-arrow-down"
-          color="primary"
+          :color="iconColor"
           @click="scrollToBottom"
-          style="position: absolute; bottom: 6rem; right: 2rem; z-index: 500"
         />
       </v-container>
 
@@ -324,6 +323,18 @@ const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#f
 @use 'three-dots' with (
   $dot-color: #999
 );
+
+.scroll-to-bottom {
+  position: absolute;
+  bottom: 6rem;
+  right: 3rem;
+  z-index: 500;
+  background-color: v-bind(buttonColor);
+
+  height: 3.5rem;
+  width: 3.5rem;
+  border-radius: 12px;
+}
 
 .typing-indicator__wrapper {
   z-index: 400;
