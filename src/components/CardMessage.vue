@@ -28,7 +28,8 @@ const alignment = computed(() => (isMine ? 'flex-end' : 'flex-start'))
 <template>
   <div :style="{ alignSelf: alignment }">
     <v-container
-      class="message-item w-auto pa-0 d-flex flex-row"
+      class="message-item w-auto pa-0 d-flex"
+      :class="isMine ? 'flex-row-reverse' : 'flex-row'"
       :style="{ alignSelf: alignment }"
     >
       <v-avatar
@@ -38,7 +39,13 @@ const alignment = computed(() => (isMine ? 'flex-end' : 'flex-start'))
       />
 
       <v-container class="pt-0">
-        <h5 v-if="sender && sender.name">{{ sender.name }}</h5>
+        <h5
+          v-if="sender && sender.name"
+          :class="isMine ? 'text-right' : 'text-left'"
+          class="pb-1"
+        >
+          {{ sender.name }}
+        </h5>
         <p class="card-message pa-3">{{ messages.this.text }}</p>
       </v-container>
     </v-container>
