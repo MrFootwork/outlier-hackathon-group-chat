@@ -1,12 +1,20 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
+import OpenAI from 'openai'
+import { useTheme } from 'vuetify'
+
 import CardMessage from './CardMessage.vue'
 
 import { useRoomsStore } from '../stores/rooms'
 import { useUsersStore } from '../stores/users'
 import { useMessagesStore } from '../stores/messages'
 
+const theme = useTheme()
+
+/***************
+ * Stores
+ **************/
 const roomsStore = useRoomsStore()
 const { rooms, selectedRoomID } = storeToRefs(roomsStore)
 
@@ -16,22 +24,174 @@ const { messages } = storeToRefs(messagesStore)
 const usersStore = useUsersStore()
 const { users } = storeToRefs(usersStore)
 
-const message = ref('')
-
-function sendMessage() {
-  // Logic to send a message
-  console.log('Message sent!', message.value)
-}
-
+/***************************
+ * Component states & Refs
+ **************************/
 const myUserId = 4
+const inputMessage = ref('')
 
-const members = computed(() => {
+const messagesContainer = ref(null)
+
+const roomMembers = computed(() => {
   return rooms.value
     .find((room) => room.id === selectedRoomID.value)
     ?.members.map((memberID) => {
       return users.value.find((user) => user.id === memberID)
     })
 })
+
+const isTyping = ref(false)
+const randomIndex = ref(null)
+const responder = ref(null)
+
+/***************
+ * SCROLLING
+ **************/
+const scrolledUp = ref(false)
+const scrollThreshold = 150
+
+function handleScroll() {
+  if (!messagesContainer.value) return
+
+  const el = messagesContainer.value.$el || messagesContainer.value
+  // 150px threshold for "at bottom"
+  scrolledUp.value = el.scrollTop + el.clientHeight < el.scrollHeight - scrollThreshold
+}
+
+function scrollToBottom() {
+  nextTick(() => {
+    if (messagesContainer.value) {
+      const el = messagesContainer.value.$el || messagesContainer.value
+      el.scrollTop = el.scrollHeight
+      scrolledUp.value = false
+    }
+  })
+}
+
+// Scroll to bottom when new messages are added
+watch(
+  () => messages.value.length,
+  () => {
+    scrollToBottom()
+  }
+)
+
+// Scroll to bottom on page load
+onMounted(() => {
+  scrollToBottom()
+
+  const el = messagesContainer.value?.$el || messagesContainer.value
+
+  if (el) {
+    el.addEventListener('scroll', handleScroll)
+  }
+})
+
+onUnmounted(() => {
+  const el = messagesContainer.value?.$el || messagesContainer.value
+
+  if (el) {
+    el.removeEventListener('scroll', handleScroll)
+  }
+})
+
+/***************
+ * OpenAI
+ **************/
+const apiKey = import.meta.env.VITE_OPENAI_API_KEY
+const project = import.meta.env.VITE_OPENAI_PROJECT_ID
+const organization = import.meta.env.VITE_OPENAI_ORG_ID
+const client = new OpenAI({ apiKey, project, organization, dangerouslyAllowBrowser: true })
+
+async function sendMessage() {
+  try {
+    isTyping.value = true
+    console.log('Message sent!', inputMessage.value, roomMembers.value)
+
+    // Add Message
+    messagesStore.addMessage({
+      id: Date.now(),
+      text: inputMessage.value,
+      senderID: myUserId,
+      roomID: selectedRoomID.value,
+      time: new Date().toISOString(),
+    })
+
+    // Build context
+    const otherMembers = roomMembers.value.filter((member) => member && member.id !== myUserId)
+    randomIndex.value = Math.floor(Math.random() * otherMembers.length)
+    responder.value = otherMembers[randomIndex.value]
+
+    const systemMessage = `
+    This is a group chat with ${roomMembers.value.map((m) => m.name).join(', ')}.
+    You are ${responder.value.name}.
+    Please respond to the messages in the context of this group chat.`
+
+    const contextMessages = messages.value
+      .filter((message) => message.roomID === selectedRoomID.value)
+      .map((message) => {
+        return {
+          role: message.senderID === responder.value.id ? 'assistant' : 'user',
+          content: `[${roomMembers.value.find((m) => m.id === message.senderID).name}]: ${
+            message.text
+          }`,
+        }
+      })
+
+    const chatContext = [
+      {
+        role: 'developer',
+        content: systemMessage,
+      },
+      ...contextMessages,
+      {
+        role: 'assistant',
+        content: '',
+      },
+    ]
+
+    // Request chat response
+    const response = await client.responses.create({
+      input: chatContext,
+      model: 'gpt-4.1-nano',
+      max_output_tokens: 1024,
+      store: true,
+    })
+
+    // Cleanup response
+    const cleanedResponse = response.output_text
+      .replace(/^\s*\[[^\]]+\]:\s*/, '')
+      .replace(/\n/g, ' ')
+      .trim()
+
+    setTimeout(() => {
+      // Store response
+      messagesStore.addMessage({
+        id: Date.now() + 1,
+        text: cleanedResponse,
+        senderID: responder.value.id,
+        roomID: selectedRoomID.value,
+        time: new Date().toISOString(),
+      })
+
+      // Cleanup
+      inputMessage.value = ''
+      randomIndex.value = null
+      responder.value = null
+      isTyping.value = false
+    }, Math.floor(Math.random() * 4000) + 2000)
+  } catch (error) {
+    console.error(error)
+
+    // Cleanup
+    inputMessage.value = ''
+    randomIndex.value = null
+    responder.value = null
+    isTyping.value = false
+  }
+}
+
+const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#fff'))
 </script>
 
 <template>
@@ -50,7 +210,7 @@ const members = computed(() => {
 
       <v-container class="room-members d-flex flex-row align-center justify-end">
         <v-avatar
-          v-for="member in members.slice(0, 3)"
+          v-for="member in roomMembers.slice(0, 3)"
           :key="member.id"
           class="member-avatar"
           :image="member.avatar"
@@ -58,20 +218,23 @@ const members = computed(() => {
         />
         <!-- Show "+N" avatar if there are more than 3 members -->
         <v-avatar
-          v-if="members.length > 3"
+          v-if="roomMembers.length > 3"
           class="member-avatar"
           size="24"
           color="grey-lighten-2"
         >
           <span class="text-caption text-grey-darken-3 font-weight-bold">
-            +{{ members.length - 3 }}
+            +{{ roomMembers.length - 3 }}
           </span>
         </v-avatar>
       </v-container>
     </v-container>
 
     <v-container class="display">
-      <v-container class="messages d-flex flex-column align-stretch">
+      <v-container
+        ref="messagesContainer"
+        class="messages d-flex flex-column align-stretch"
+      >
         <CardMessage
           v-for="(message, i) in messages"
           :key="message.id"
@@ -80,18 +243,18 @@ const members = computed(() => {
             this: message,
             next: messages[i + 1],
           }"
-          :sender="members.find((member) => member.id === message.senderID)"
+          :sender="roomMembers.find((member) => member.id === message.senderID)"
           :isMine="message.senderID === myUserId"
           class="mb-2"
         />
       </v-container>
 
       <v-container
-        class="message-input"
+        class="message-input pt-10"
         width="90%"
       >
         <v-text-field
-          v-model="message"
+          v-model="inputMessage"
           class="custom-input"
           variant="solo"
           hide-details
@@ -111,19 +274,71 @@ const members = computed(() => {
             </v-btn>
           </template>
         </v-text-field>
+
+        <!-- Scroll Down Button -->
+        <v-btn
+          v-if="scrolledUp"
+          class="scroll-to-bottom"
+          icon="mdi-arrow-down"
+          color="primary"
+          @click="scrollToBottom"
+          style="position: absolute; bottom: 6rem; right: 2rem; z-index: 500"
+        />
+      </v-container>
+
+      <!-- Typing Indicator -->
+      <v-container
+        v-if="isTyping"
+        class="typing-indicator__wrapper d-flex flex-row align-center"
+        width="90%"
+      >
+        <v-avatar
+          v-if="responder"
+          class="member-avatar"
+          :image="responder.avatar || ''"
+          size="24"
+        />
+
+        <v-container class="typing-indicator__bubble">
+          <div class="dot-elastic"></div>
+        </v-container>
       </v-container>
     </v-container>
   </v-container>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+@use 'three-dots' with (
+  $dot-color: #999
+);
+
+.typing-indicator__wrapper {
+  z-index: 400;
+  width: 5rem !important;
+  position: absolute;
+  bottom: 4.5rem;
+  left: 2rem;
+  gap: 1rem;
+
+  .typing-indicator__bubble {
+    background-color: v-bind(cardColor);
+    padding: 1rem 2rem;
+    width: 5rem;
+    border-radius: 12px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
 .chat-area {
   display: flex;
   flex-direction: column;
   height: 100dvh;
   padding: 0;
 
-  & .header {
+  .header {
     flex: 0 0 auto;
     padding: 0;
 
@@ -167,9 +382,8 @@ const members = computed(() => {
       flex: 1 1 auto;
       min-height: 0;
       overflow-y: auto;
-      /* display: flex;
-      flex-direction: column;
-      align-items: stretch; */
+      scroll-behavior: smooth;
+
       gap: 8px;
 
       & > * {
