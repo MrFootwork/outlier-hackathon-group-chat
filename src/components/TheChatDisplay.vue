@@ -125,7 +125,6 @@ const client = new OpenAI({ apiKey, project, organization, dangerouslyAllowBrows
 
 async function sendMessage() {
   try {
-    isTyping.value = true
     console.log('Message sent!', inputMessage.value, roomMembers.value)
 
     // Add Message
@@ -172,6 +171,19 @@ async function sendMessage() {
       },
     ]
 
+    const randomDelay = Math.floor(Math.random() * 4000) + 2000
+
+    // Wait for user to start typing
+    await new Promise((resolve) =>
+      setTimeout(() => {
+        isTyping.value = true
+        resolve()
+      }, randomDelay)
+    )
+
+    // Wait for user to finish typing
+    await new Promise((resolve) => setTimeout(resolve, randomDelay))
+
     // Request chat response
     const response = await client.responses.create({
       input: chatContext,
@@ -186,21 +198,19 @@ async function sendMessage() {
       .replace(/\n/g, ' ')
       .trim()
 
-    setTimeout(() => {
-      // Store response
-      messagesStore.addMessage({
-        id: Date.now() + 1,
-        text: cleanedResponse,
-        senderID: responder.value.id,
-        roomID: selectedRoomID.value,
-        time: new Date().toISOString(),
-      })
+    // Store response
+    messagesStore.addMessage({
+      id: Date.now() + 1,
+      text: cleanedResponse,
+      senderID: responder.value.id,
+      roomID: selectedRoomID.value,
+      time: new Date().toISOString(),
+    })
 
-      // Cleanup
-      randomIndex.value = null
-      responder.value = null
-      isTyping.value = false
-    }, Math.floor(Math.random() * 4000) + 2000)
+    // Cleanup
+    randomIndex.value = null
+    responder.value = null
+    isTyping.value = false
   } catch (error) {
     console.error(error)
 
@@ -277,6 +287,7 @@ async function sendMessage() {
           variant="solo"
           hide-details
           placeholder="Start typing..."
+          @keydown.enter="sendMessage"
         >
           <template #append-inner>
             <v-btn
@@ -411,7 +422,7 @@ async function sendMessage() {
       min-height: 0;
       overflow-y: auto;
       scroll-behavior: smooth;
-      padding: 0 2rem;
+      padding: 0 clamp(2rem, calc(100% - 58vw), 20rem);
 
       gap: 8px;
 

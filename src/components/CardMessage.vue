@@ -26,7 +26,10 @@ const alignment = computed(() => (isMine ? 'flex-end' : 'flex-start'))
 </script>
 
 <template>
-  <div :style="{ alignSelf: alignment }">
+  <div
+    class="card-wrapper"
+    :style="{ alignSelf: alignment }"
+  >
     <v-container
       class="message-item w-auto pa-0 d-flex"
       :class="isMine ? 'flex-row-reverse' : 'flex-row'"
@@ -39,7 +42,7 @@ const alignment = computed(() => (isMine ? 'flex-end' : 'flex-start'))
       />
 
       <v-container
-        class="text-container ma-0 pt-0 pb-2 d-flex flex-column"
+        class="ma-0 pt-0 pb-2 d-flex flex-column"
         :class="isMine ? 'align-end' : 'align-start'"
       >
         <h5
@@ -61,8 +64,8 @@ const alignment = computed(() => (isMine ? 'flex-end' : 'flex-start'))
 </template>
 
 <style scoped>
-.text-container {
-  max-width: 70%;
+.card-wrapper {
+  width: 100%;
 }
 
 .card-message {
