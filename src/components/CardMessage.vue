@@ -38,21 +38,33 @@ const alignment = computed(() => (isMine ? 'flex-end' : 'flex-start'))
         size="48"
       />
 
-      <v-container class="pt-0">
+      <v-container
+        class="text-container ma-0 pt-0 pb-2 d-flex flex-column"
+        :class="isMine ? 'align-end' : 'align-start'"
+      >
         <h5
           v-if="sender && sender.name"
-          :class="isMine ? 'text-right' : 'text-left'"
           class="pb-1"
+          :class="isMine ? 'text-right' : 'text-left'"
         >
           {{ sender.name }}
         </h5>
-        <p class="card-message pa-3">{{ messages.this.text }}</p>
+        <p
+          class="card-message pa-3"
+          :class="isMine ? 'text-right' : 'text-left'"
+        >
+          {{ messages.this.text }}
+        </p>
       </v-container>
     </v-container>
   </div>
 </template>
 
 <style scoped>
+.text-container {
+  max-width: 70%;
+}
+
 .card-message {
   background-color: v-bind(badgeBorderColor);
   border-radius: 12px;

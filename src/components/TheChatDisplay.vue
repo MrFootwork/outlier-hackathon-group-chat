@@ -411,6 +411,7 @@ async function sendMessage() {
       min-height: 0;
       overflow-y: auto;
       scroll-behavior: smooth;
+      padding: 0 2rem;
 
       gap: 8px;
 
