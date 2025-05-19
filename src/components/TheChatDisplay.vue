@@ -48,12 +48,13 @@ const isTyping = ref(false)
 const randomIndex = ref(null)
 const responder = ref(null)
 
-const buttonColor = computed(() => {
-  return theme.global.current.value.dark ? '#fff' : '#222'
+const scrollDownButtonColor = computed(() => {
+  return theme.global.current.value.dark ? 'rgba(34,34,34, 0.9)' : 'rgba(255,255,255, 0.9)'
 })
-const iconColor = computed(() => {
-  return theme.global.current.value.dark ? '#222' : '#fff'
+const sendButtonColor = computed(() => {
+  return theme.global.current.value.dark ? 'rgba(255,255,255, 1)' : 'rgba(0,0,0, 1)'
 })
+const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#fff'))
 
 /***************
  * SCROLLING
@@ -209,8 +210,6 @@ async function sendMessage() {
     isTyping.value = false
   }
 }
-
-const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#fff'))
 </script>
 
 <template>
@@ -285,12 +284,11 @@ const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#f
               class="send-button"
               @click="sendMessage"
               icon
-              :style="{ backgroundColor: buttonColor }"
             >
               <v-icon
                 class="send-icon-bg"
                 icon="mdi-send"
-                :color="iconColor"
+                :color="scrollDownButtonColor"
               />
             </v-btn>
           </template>
@@ -301,7 +299,7 @@ const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#f
           v-if="scrolledUp"
           class="scroll-to-bottom rounded"
           icon="mdi-arrow-down"
-          :color="iconColor"
+          :color="scrollDownButtonColor"
           @click="scrollToBottom"
         />
       </v-container>
@@ -337,7 +335,7 @@ const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#f
   bottom: 6rem;
   right: 3rem;
   z-index: 500;
-  background-color: v-bind(buttonColor);
+  background-color: v-bind(scrollDownButtonColor);
 
   height: 3.5rem;
   width: 3.5rem;
@@ -399,10 +397,8 @@ const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#f
       content: '';
       position: absolute;
       inset: 0;
-      z-index: 0;
       background-image: url('../assets/chat-background.png');
       background-size: cover;
-      background-repeat: no-repeat;
       background-position: center;
       filter: blur(4px);
       opacity: 0.5;
@@ -436,6 +432,7 @@ const cardColor = computed(() => (theme.global.current.value.dark ? '#222' : '#f
       }
 
       & .send-button {
+        background-color: v-bind(sendButtonColor);
         height: 3.5rem;
         width: 3.5rem;
         translate: 0.75rem;
