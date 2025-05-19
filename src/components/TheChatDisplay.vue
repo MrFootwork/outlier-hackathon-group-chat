@@ -87,6 +87,14 @@ watch(
   }
 )
 
+// Scroll to bottom when the selected room changes
+watch(
+  () => selectedRoomID.value,
+  () => {
+    scrollToBottom()
+  }
+)
+
 // Scroll to bottom on page load
 onMounted(() => {
   scrollToBottom()

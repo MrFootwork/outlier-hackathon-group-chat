@@ -17,7 +17,6 @@ const props = defineProps({
 })
 
 function selectRoom() {
-  // Logic to select the room
   console.log(`Selected room: ${props.room.id}`)
   roomsStore.selectRoom(props.room.id)
 }
