@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useTheme } from 'vuetify'
 import { useRoomsStore } from '../stores/rooms'
 
@@ -14,12 +14,22 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  search: String,
 })
 
 function selectRoom() {
   console.log(`Selected room: ${props.room.id}`)
   roomsStore.selectRoom(props.room.id)
 }
+
+// Highlight matching part of room name
+const highlightedName = computed(() => {
+  if (!props.search) return props.room.name
+  const search = props.search.trim()
+  if (!search) return props.room.name
+  const regex = new RegExp(`(${search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'ig')
+  return props.room.name.replace(regex, '<span class="highlight">$1</span>')
+})
 </script>
 
 <template>
@@ -43,11 +53,27 @@ function selectRoom() {
     </v-badge>
 
     <v-container class="group-btn__content pa-2 d-flex flex-column align-start">
-      <h4 class="group-btn__name">{{ props.room.name }}</h4>
+      <h3
+        class="group-btn__name text-none"
+        v-html="highlightedName"
+      ></h3>
       <p class="group-btn__last-message text-grey text-caption">{{ props.room.lastMessage }}</p>
     </v-container>
   </v-btn>
 </template>
+
+<style>
+.highlight {
+  background: yellow;
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+.v-theme--dark .highlight {
+  background: hsl(60, 65%, 20%);
+}
+</style>
 
 <style scoped>
 .group-btn.v-btn.v-btn--variant-plain:not(.v-btn--active):not(.v-btn--disabled):not(:hover):not(
