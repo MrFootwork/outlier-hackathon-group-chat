@@ -66,11 +66,27 @@ function scrollToBottom() {
   })
 }
 
+function jumpToBottomInstant() {
+  nextTick(() => {
+    if (messagesContainer.value) {
+      const el = messagesContainer.value.$el || messagesContainer.value
+      // Temporarily disable smooth scroll
+      el.style.scrollBehavior = 'auto'
+      el.scrollTop = el.scrollHeight
+      scrolledUp.value = false
+      // Restore smooth scroll for future updates
+      setTimeout(() => {
+        el.style.scrollBehavior = ''
+      }, 0)
+    }
+  })
+}
+
 // Scroll to bottom when new messages are added
 watch(() => roomMessages.value.length, scrollToBottom)
 
-// Scroll to bottom when the selected room changes
-watch(() => selectedRoomID.value, scrollToBottom)
+// Jump to bottom isntantly when the selected room changes
+watch(() => selectedRoomID.value, jumpToBottomInstant)
 
 // Scroll to bottom on page load
 onMounted(() => {
