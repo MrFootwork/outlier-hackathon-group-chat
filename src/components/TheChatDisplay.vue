@@ -231,6 +231,7 @@ async function sendMessage() {
           variant="solo"
           hide-details
           placeholder="Start typing..."
+          autocomplete="off"
           @keydown.enter="sendMessage"
         >
           <template #append-inner>
