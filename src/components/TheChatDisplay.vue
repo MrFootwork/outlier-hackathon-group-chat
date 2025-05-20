@@ -12,17 +12,20 @@ import { useMessagesStore } from '../stores/messages'
 import { useOpenAI } from '../composables/useOpenAI'
 
 const theme = useTheme()
+// useOpenAI needs to be called so the timer for random messages runs
+useOpenAI()
 
 /***************
  * Stores
  **************/
 const roomsStore = useRoomsStore()
-const { rooms, selectedRoomID, roomMembers, roomMessages } = storeToRefs(roomsStore)
+const { rooms, selectedRoomID, roomMembers, roomMessages, typingInRoom } = storeToRefs(roomsStore)
 
 const messagesStore = useMessagesStore()
 const { messages } = storeToRefs(messagesStore)
 
 const usersStore = useUsersStore()
+const { typingUser } = storeToRefs(usersStore)
 
 /***************************
  * Component states & Refs
@@ -30,10 +33,6 @@ const usersStore = useUsersStore()
 const inputMessage = ref('')
 
 const messagesContainer = ref(null)
-
-const isTyping = ref(false)
-const randomIndex = ref(null)
-const responder = ref(null)
 
 const scrollDownButtonColor = computed(() => {
   return theme.global.current.value.dark ? 'rgba(34,34,34, 0.9)' : 'rgba(255,255,255, 0.9)'
@@ -88,71 +87,21 @@ onUnmounted(() => {
 /********************
  * Message handling
  *******************/
-const { sendChat } = useOpenAI()
-
-// FIXME Use timer for random messages
+// BUG breaks when sending a message while sendMessage is processing
 async function sendMessage() {
   if (!inputMessage.value) return
 
-  try {
-    // Add Message
-    messagesStore.addMessage({
-      id: Date.now(),
-      text: inputMessage.value,
-      senderID: usersStore.myUserID,
-      roomID: selectedRoomID.value,
-      time: new Date().toISOString(),
-    })
+  // Add Message
+  messagesStore.addMessage({
+    id: Date.now(),
+    text: inputMessage.value,
+    senderID: usersStore.myUserID,
+    roomID: selectedRoomID.value,
+    time: new Date().toISOString(),
+  })
 
-    // Store context in case user switches rooms during process
-    const contextMessages = roomMessages.value
-    const contextMembers = roomMembers.value
-    const currentRoomID = selectedRoomID.value
-
-    // Reset input
-    inputMessage.value = ''
-
-    // Determine random responder
-    const otherMembers = contextMembers.filter(
-      member => member && member.id !== usersStore.myUserID
-    )
-    randomIndex.value = Math.floor(Math.random() * otherMembers.length)
-    responder.value = otherMembers[randomIndex.value]
-
-    const randomDelay = () => Math.floor(Math.random() * 4000) + 2000
-
-    // Wait for responder to start typing
-    await new Promise(resolve =>
-      setTimeout(() => {
-        isTyping.value = true
-        roomsStore.setTypingInRoom(currentRoomID)
-        resolve()
-      }, randomDelay())
-    )
-
-    // Wait for responder to finish typing
-    await new Promise(resolve => setTimeout(resolve, randomDelay()))
-
-    // Request chat response
-    const response = await sendChat(responder.value, contextMessages, contextMembers)
-
-    // Store response
-    messagesStore.addMessage({
-      id: Date.now() + 1,
-      text: response,
-      senderID: responder.value.id,
-      roomID: currentRoomID,
-      time: new Date().toISOString(),
-    })
-  } catch (error) {
-    console.error(error)
-  } finally {
-    // Cleanup
-    randomIndex.value = null
-    responder.value = null
-    isTyping.value = false
-    roomsStore.setTypingInRoom(null)
-  }
+  // Reset input
+  inputMessage.value = ''
 }
 </script>
 
@@ -262,14 +211,14 @@ async function sendMessage() {
 
       <!-- Typing Indicator -->
       <v-container
-        v-if="isTyping"
+        v-if="typingUser && typingInRoom === selectedRoomID"
         class="typing-indicator__wrapper d-flex flex-row align-center"
         width="90%"
       >
         <v-avatar
-          v-if="responder"
+          v-if="typingUser"
           class="member-avatar"
-          :image="responder.avatar || ''"
+          :image="typingUser.avatar || ''"
           size="24"
         />
 

@@ -43,7 +43,7 @@ const highlightedName = computed(() => {
 
 const messageCaption = computed(() => {
   if (typingInRoom.value === props.room.id) return '... typing'
-  return lastMessage.value.text || ''
+  return lastMessage.value?.text || ''
 })
 </script>
 

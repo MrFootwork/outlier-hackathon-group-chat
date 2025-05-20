@@ -38,9 +38,17 @@ const defaultUsers = [
 
 export const useUsersStore = defineStore('users', () => {
   const users = ref(defaultUsers)
+  const typingUser = ref(null)
+
+  function setTypingUser(user) {
+    if (!user) typingUser.value = null
+    typingUser.value = user
+  }
 
   return {
     users,
     myUserID,
+    typingUser,
+    setTypingUser,
   }
 })

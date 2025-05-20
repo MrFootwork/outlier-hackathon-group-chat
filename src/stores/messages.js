@@ -98,7 +98,10 @@ const startingMessagesRoom2 = Array.from({ length: 17 }, (_, i) => {
 })
 
 export const useMessagesStore = defineStore('messages', () => {
-  const messages = ref([...startingMessagesRoom1, ...startingMessagesRoom2])
+  const messages = ref([])
+
+  // Initialize with starting messages for two rooms
+  messages.value = [...startingMessagesRoom1, ...startingMessagesRoom2]
 
   function addMessage(message) {
     messages.value.push(message)
