@@ -72,7 +72,12 @@ const messageCaption = computed(() => {
         class="group-btn__name text-none"
         v-html="highlightedName"
       ></h3>
-      <p class="group-btn__last-message text-grey text-caption">{{ messageCaption }}</p>
+      <p
+        class="group-btn__last-message text-grey text-caption"
+        :class="{ typing: typingInRoom === props.room.id }"
+      >
+        {{ messageCaption }}
+      </p>
     </v-container>
   </v-btn>
 </template>
@@ -91,6 +96,10 @@ const messageCaption = computed(() => {
 </style>
 
 <style scoped>
+.typing {
+  color: var(--primary) !important;
+}
+
 .group-btn.v-btn.v-btn--variant-plain:not(.v-btn--active):not(.v-btn--disabled):not(:hover):not(
     :focus
   ) {
