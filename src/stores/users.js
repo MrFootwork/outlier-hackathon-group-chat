@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+const myUserID = 4
+
 const defaultUsers = [
   {
     id: 1,
@@ -39,5 +41,6 @@ export const useUsersStore = defineStore('users', () => {
 
   return {
     users,
+    myUserID,
   }
 })

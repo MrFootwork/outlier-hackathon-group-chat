@@ -1,5 +1,7 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { defineStore, storeToRefs } from 'pinia'
+import { ref, computed } from 'vue'
+import { useUsersStore } from './users'
+import { useMessagesStore } from './messages'
 
 const defaultRooms = [
   {
@@ -20,16 +22,48 @@ const defaultRooms = [
 ]
 
 export const useRoomsStore = defineStore('rooms', () => {
+  // Dependencies
+  const usersStore = useUsersStore()
+  const { users } = storeToRefs(usersStore)
+
+  const messagesStore = useMessagesStore()
+  const { messages } = storeToRefs(messagesStore)
+
+  // State
   const rooms = ref(defaultRooms)
   const selectedRoomID = ref(1)
+  const typingInRoom = ref(null)
 
+  // Computed Values
+  const roomMembers = computed(() => {
+    return rooms.value
+      .find(room => room.id === selectedRoomID.value)
+      ?.members.map(memberID => {
+        return users.value.find(user => user.id === memberID)
+      })
+  })
+
+  const roomMessages = computed(() => {
+    return messages.value.filter(message => message.roomID === selectedRoomID.value)
+  })
+
+  // Actions
   function selectRoom(roomID) {
     selectedRoomID.value = roomID
+  }
+
+  function setTypingInRoom(roomID) {
+    if (!roomID) typingInRoom.value = null
+    typingInRoom.value = roomID
   }
 
   return {
     rooms,
     selectedRoomID,
     selectRoom,
+    roomMembers,
+    roomMessages,
+    typingInRoom,
+    setTypingInRoom,
   }
 })

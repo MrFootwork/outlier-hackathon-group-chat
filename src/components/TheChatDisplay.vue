@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import OpenAI from 'openai'
 import { useTheme } from 'vuetify'
 
 import CardMessage from './CardMessage.vue'
@@ -10,39 +9,27 @@ import { useRoomsStore } from '../stores/rooms'
 import { useUsersStore } from '../stores/users'
 import { useMessagesStore } from '../stores/messages'
 
+import { useOpenAI } from '../composables/useOpenAI'
+
 const theme = useTheme()
 
 /***************
  * Stores
  **************/
 const roomsStore = useRoomsStore()
-const { rooms, selectedRoomID } = storeToRefs(roomsStore)
+const { rooms, selectedRoomID, roomMembers, roomMessages } = storeToRefs(roomsStore)
 
 const messagesStore = useMessagesStore()
 const { messages } = storeToRefs(messagesStore)
 
 const usersStore = useUsersStore()
-const { users } = storeToRefs(usersStore)
 
 /***************************
  * Component states & Refs
  **************************/
-const myUserId = 4
 const inputMessage = ref('')
 
 const messagesContainer = ref(null)
-
-const roomMembers = computed(() => {
-  return rooms.value
-    .find((room) => room.id === selectedRoomID.value)
-    ?.members.map((memberID) => {
-      return users.value.find((user) => user.id === memberID)
-    })
-})
-
-const roomMessages = computed(() => {
-  return messages.value.filter((message) => message.roomID === selectedRoomID.value)
-})
 
 const isTyping = ref(false)
 const randomIndex = ref(null)
@@ -98,112 +85,73 @@ onUnmounted(() => {
   if (el) el.removeEventListener('scroll', handleScroll)
 })
 
-/***************
- * OpenAI
- **************/
-const keys = {
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  project: import.meta.env.VITE_OPENAI_PROJECT_ID,
-  organization: import.meta.env.VITE_OPENAI_ORG_ID,
-}
+/********************
+ * Message handling
+ *******************/
+const { sendChat } = useOpenAI()
 
-const client = new OpenAI({ ...keys, dangerouslyAllowBrowser: true })
-
+// FIXME Use timer for random messages
 async function sendMessage() {
-  try {
-    console.log('Message sent!', inputMessage.value, roomMembers.value)
+  if (!inputMessage.value) return
 
+  try {
     // Add Message
     messagesStore.addMessage({
       id: Date.now(),
       text: inputMessage.value,
-      senderID: myUserId,
+      senderID: usersStore.myUserID,
       roomID: selectedRoomID.value,
       time: new Date().toISOString(),
     })
 
+    // Store context in case user switches rooms during process
+    const contextMessages = roomMessages.value
+    const contextMembers = roomMembers.value
+    const currentRoomID = selectedRoomID.value
+
+    // Reset input
     inputMessage.value = ''
 
-    // Build context
-    const otherMembers = roomMembers.value.filter((member) => member && member.id !== myUserId)
+    // Determine random responder
+    const otherMembers = contextMembers.filter(
+      member => member && member.id !== usersStore.myUserID
+    )
     randomIndex.value = Math.floor(Math.random() * otherMembers.length)
     responder.value = otherMembers[randomIndex.value]
 
-    const systemMessage = `
-    This is a group chat with ${roomMembers.value.map((m) => m.name).join(', ')}.
-    You are ${responder.value.name}.
-    Please respond to the messages in the context of this group chat.`
+    const randomDelay = () => Math.floor(Math.random() * 4000) + 2000
 
-    const contextMessages = roomMessages.value
-      .filter((message) => message.roomID === selectedRoomID.value)
-      .map((message) => {
-        return {
-          role: message.senderID === responder.value.id ? 'assistant' : 'user',
-          content: `[${roomMembers.value.find((m) => m.id === message.senderID).name}]: ${
-            message.text
-          }`,
-        }
-      })
-
-    const chatContext = [
-      {
-        role: 'developer',
-        content: systemMessage,
-      },
-      ...contextMessages,
-      {
-        role: 'assistant',
-        content: '',
-      },
-    ]
-
-    const randomDelay = Math.floor(Math.random() * 4000) + 2000
-
-    // Wait for user to start typing
-    await new Promise((resolve) =>
+    // Wait for responder to start typing
+    await new Promise(resolve =>
       setTimeout(() => {
         isTyping.value = true
+        roomsStore.setTypingInRoom(currentRoomID)
         resolve()
-      }, randomDelay)
+      }, randomDelay())
     )
 
-    // Wait for user to finish typing
-    await new Promise((resolve) => setTimeout(resolve, randomDelay))
+    // Wait for responder to finish typing
+    await new Promise(resolve => setTimeout(resolve, randomDelay()))
 
     // Request chat response
-    const response = await client.responses.create({
-      input: chatContext,
-      model: 'gpt-4.1-nano',
-      max_output_tokens: 1024,
-      store: true,
-    })
-
-    // Cleanup response
-    const cleanedResponse = response.output_text
-      .replace(/^\s*\[[^\]]+\]:\s*/, '')
-      .replace(/\n/g, ' ')
-      .trim()
+    const response = await sendChat(responder.value, contextMessages, contextMembers)
 
     // Store response
     messagesStore.addMessage({
       id: Date.now() + 1,
-      text: cleanedResponse,
+      text: response,
       senderID: responder.value.id,
-      roomID: selectedRoomID.value,
+      roomID: currentRoomID,
       time: new Date().toISOString(),
     })
-
-    // Cleanup
-    randomIndex.value = null
-    responder.value = null
-    isTyping.value = false
   } catch (error) {
     console.error(error)
-
+  } finally {
     // Cleanup
     randomIndex.value = null
     responder.value = null
     isTyping.value = false
+    roomsStore.setTypingInRoom(null)
   }
 }
 </script>
@@ -213,11 +161,11 @@ async function sendMessage() {
     <v-container class="header">
       <v-container class="room-info pa-0 d-flex flex-row align-center">
         <v-avatar
-          :image="rooms.find((r) => r.id === selectedRoomID).avatar"
+          :image="rooms.find(r => r.id === selectedRoomID).avatar"
           size="48"
         />
         <v-container>
-          <h4>{{ rooms.find((r) => r.id === selectedRoomID).name }}</h4>
+          <h4>{{ rooms.find(r => r.id === selectedRoomID).name }}</h4>
           <p class="text-grey text-caption">{{ roomMembers.length }} members</p>
         </v-container>
       </v-container>
@@ -267,8 +215,8 @@ async function sendMessage() {
             this: message,
             next: messages[i + 1],
           }"
-          :sender="roomMembers.find((member) => member.id === message.senderID)"
-          :isMine="message.senderID === myUserId"
+          :sender="roomMembers.find(member => member.id === message.senderID)"
+          :isMine="message.senderID === usersStore.myUserID"
           class="mb-2"
         />
       </v-container>

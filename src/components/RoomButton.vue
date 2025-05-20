@@ -8,6 +8,8 @@ import { useMessagesStore } from '../stores/messages'
 const theme = useTheme()
 
 const roomsStore = useRoomsStore()
+const { typingInRoom } = storeToRefs(roomsStore)
+
 const messagesStore = useMessagesStore()
 const { messages } = storeToRefs(messagesStore)
 
@@ -27,7 +29,7 @@ function selectRoom() {
 }
 
 const lastMessage = computed(() =>
-  messages.value.filter((message) => message.roomID === props.room.id).at(-1)
+  messages.value.filter(message => message.roomID === props.room.id).at(-1)
 )
 
 // Highlight matching part of room name
@@ -37,6 +39,11 @@ const highlightedName = computed(() => {
   if (!search) return props.room.name
   const regex = new RegExp(`(${search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'ig')
   return props.room.name.replace(regex, '<span class="highlight">$1</span>')
+})
+
+const messageCaption = computed(() => {
+  if (typingInRoom.value === props.room.id) return '... typing'
+  return lastMessage.value.text || ''
 })
 </script>
 
@@ -65,7 +72,7 @@ const highlightedName = computed(() => {
         class="group-btn__name text-none"
         v-html="highlightedName"
       ></h3>
-      <p class="group-btn__last-message text-grey text-caption">{{ lastMessage.text }}</p>
+      <p class="group-btn__last-message text-grey text-caption">{{ messageCaption }}</p>
     </v-container>
   </v-btn>
 </template>
