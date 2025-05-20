@@ -1,11 +1,15 @@
 <script setup>
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useTheme } from 'vuetify'
 import { useRoomsStore } from '../stores/rooms'
+import { useMessagesStore } from '../stores/messages'
 
 const theme = useTheme()
 
 const roomsStore = useRoomsStore()
+const messagesStore = useMessagesStore()
+const { messages } = storeToRefs(messagesStore)
 
 const badgeBorderColor = computed(() => (theme.global.current.value.dark ? '#222' : '#fff'))
 
@@ -21,6 +25,10 @@ function selectRoom() {
   console.log(`Selected room: ${props.room.id}`)
   roomsStore.selectRoom(props.room.id)
 }
+
+const lastMessage = computed(() =>
+  messages.value.filter((message) => message.roomID === props.room.id).at(-1)
+)
 
 // Highlight matching part of room name
 const highlightedName = computed(() => {
@@ -57,7 +65,7 @@ const highlightedName = computed(() => {
         class="group-btn__name text-none"
         v-html="highlightedName"
       ></h3>
-      <p class="group-btn__last-message text-grey text-caption">{{ props.room.lastMessage }}</p>
+      <p class="group-btn__last-message text-grey text-caption">{{ lastMessage.text }}</p>
     </v-container>
   </v-btn>
 </template>
@@ -100,7 +108,6 @@ const highlightedName = computed(() => {
 
 .group-btn__content {
   flex: 1 1 0;
-  min-width: 0;
   overflow: hidden;
 }
 
@@ -108,6 +115,7 @@ const highlightedName = computed(() => {
 .group-btn__last-message {
   white-space: nowrap;
   overflow: hidden;
+  /* BUG ellipsis breaks because flex layouts with v-btn and v-container can't hide overflow correctly */
   text-overflow: ellipsis;
   margin: 0;
 }

@@ -81,47 +81,33 @@ function scrollToBottom() {
 }
 
 // Scroll to bottom when new messages are added
-watch(
-  () => roomMessages.value.length,
-  () => {
-    scrollToBottom()
-  }
-)
+watch(() => roomMessages.value.length, scrollToBottom)
 
 // Scroll to bottom when the selected room changes
-watch(
-  () => selectedRoomID.value,
-  () => {
-    scrollToBottom()
-  }
-)
+watch(() => selectedRoomID.value, scrollToBottom)
 
 // Scroll to bottom on page load
 onMounted(() => {
   scrollToBottom()
-
   const el = messagesContainer.value?.$el || messagesContainer.value
-
-  if (el) {
-    el.addEventListener('scroll', handleScroll)
-  }
+  if (el) el.addEventListener('scroll', handleScroll)
 })
 
 onUnmounted(() => {
   const el = messagesContainer.value?.$el || messagesContainer.value
-
-  if (el) {
-    el.removeEventListener('scroll', handleScroll)
-  }
+  if (el) el.removeEventListener('scroll', handleScroll)
 })
 
 /***************
  * OpenAI
  **************/
-const apiKey = import.meta.env.VITE_OPENAI_API_KEY
-const project = import.meta.env.VITE_OPENAI_PROJECT_ID
-const organization = import.meta.env.VITE_OPENAI_ORG_ID
-const client = new OpenAI({ apiKey, project, organization, dangerouslyAllowBrowser: true })
+const keys = {
+  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+  project: import.meta.env.VITE_OPENAI_PROJECT_ID,
+  organization: import.meta.env.VITE_OPENAI_ORG_ID,
+}
+
+const client = new OpenAI({ ...keys, dangerouslyAllowBrowser: true })
 
 async function sendMessage() {
   try {

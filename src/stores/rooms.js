@@ -5,7 +5,6 @@ const defaultRooms = [
   {
     id: 1,
     name: 'Project Alpha Team',
-    lastMessage: 'The latest draft is ready for review.',
     time: '10:30 AM',
     members: [1, 2, 3, 4],
     avatar: 'https://cdn.pixabay.com/photo/2015/02/07/10/10/giraffes-627031_1280.jpg',
@@ -13,7 +12,6 @@ const defaultRooms = [
   {
     id: 2,
     name: 'Family Group',
-    lastMessage: 'Dinner at 7 tonight?',
     time: '11:00 AM',
     members: [4, 5, 6],
     avatar:
