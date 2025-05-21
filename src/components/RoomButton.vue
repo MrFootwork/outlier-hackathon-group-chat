@@ -78,6 +78,7 @@ const messageCaption = computed(() => {
       >
         {{ messageCaption }}
       </p>
+      <!-- FIXME Show unread messages -->
     </v-container>
   </v-btn>
 </template>
@@ -97,6 +98,7 @@ const messageCaption = computed(() => {
 
 <style scoped>
 .typing {
+  /* BUG bad color */
   color: var(--primary) !important;
 }
 

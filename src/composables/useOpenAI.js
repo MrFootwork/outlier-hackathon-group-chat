@@ -6,6 +6,8 @@ import { useRoomsStore } from '../stores/rooms'
 import { useMessagesStore } from '../stores/messages'
 import { useUsersStore } from '../stores/users'
 
+let visibilityListenerAdded = false
+
 /**
  * Composable for interacting with the OpenAI API in a group chat context.
  *
@@ -36,8 +38,20 @@ export function useOpenAI() {
    ************************************************/
   let timeoutId
 
+  function abortTyping() {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+      timeoutId = null
+      usersStore.setTypingUser(null)
+      roomsStore.setTypingInRoom(null)
+    }
+  }
+
   function startTimer() {
-    if (timeoutId) clearTimeout(timeoutId)
+    // Never run multiple timers at once
+    if (timeoutId) abortTyping()
+    // Timer starts with active tab and focused window
+    if (document.hidden || !document.hasFocus()) return
 
     const delay = Math.floor(Math.random() * 2000) + 2000
 
@@ -46,12 +60,14 @@ export function useOpenAI() {
       const randomRoomsIndex = Math.floor(Math.random() * rooms.value.length)
       const randomRoom = rooms.value[randomRoomsIndex]
       const roomMessages = messages.value.filter(m => m.roomID === randomRoom.id)
-      const roomMembers = randomRoom.members.map(m => users.value.find(user => user.id === m))
-      const otherMembers = randomRoom.members.filter(m => m !== usersStore.myUserID)
-      const membersWithoutLastSender = otherMembers.filter(m => m !== roomMessages.at(-1).senderID)
-      const randomResponderIndex = Math.floor(Math.random() * membersWithoutLastSender.length)
+      const roomMembers = randomRoom.members.map(mID => users.value.find(user => user.id === mID))
+      const otherMembersIDs = randomRoom.members.filter(mID => mID !== usersStore.myUserID)
+      const membersIDsWithoutLastSender = otherMembersIDs.filter(
+        mID => mID !== roomMessages.at(-1).senderID
+      )
+      const randomResponderIndex = Math.floor(Math.random() * membersIDsWithoutLastSender.length)
       const responder = users.value.find(
-        user => user.id === membersWithoutLastSender[randomResponderIndex]
+        user => user.id === membersIDsWithoutLastSender[randomResponderIndex]
       )
 
       const randomDelay = () => Math.floor(Math.random() * 2000) + 3000
@@ -66,11 +82,11 @@ export function useOpenAI() {
         }, randomDelay())
       )
 
-      // Wait for responder to finish typing
-      await new Promise(resolve => setTimeout(resolve, randomDelay()))
-
       // Request chat response
       const response = await sendChat(responder, roomMessages, roomMembers)
+
+      // Wait for responder to finish typing
+      await new Promise(resolve => setTimeout(resolve, randomDelay()))
 
       // Store response
       messagesStore.addMessage({
@@ -81,9 +97,7 @@ export function useOpenAI() {
         time: new Date().toISOString(),
       })
 
-      // Stop typing
-      usersStore.setTypingUser(null)
-      roomsStore.setTypingInRoom(null)
+      abortTyping()
     }, delay)
   }
 
@@ -94,11 +108,27 @@ export function useOpenAI() {
   watch(
     () => messages.value.length,
     (newVal, oldVal, onCleanup) => {
-      console.log('MESSAGES CHANGED')
       startTimer()
-      onCleanup(() => clearTimeout(timeoutId))
+      onCleanup(abortTyping)
     }
   )
+
+  // Restart timer when the document becomes visible again
+  if (!visibilityListenerAdded) {
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && messages.value.length > 0 && !timeoutId) {
+        startTimer()
+      }
+    })
+
+    window.addEventListener('focus', () => {
+      if (!document.hidden && messages.value.length > 0 && !timeoutId) {
+        startTimer()
+      }
+    })
+
+    visibilityListenerAdded = true
+  }
 
   /**
    * Sends a chat message to the OpenAI API and returns the AI's response.
